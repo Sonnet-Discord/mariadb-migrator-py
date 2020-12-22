@@ -54,18 +54,18 @@ def initialize_login():
 
 
 def migrate():
-    with lib_mdb_handler.db_handler() as mariadb
+    with lib_mdb_handler.db_handler() as mariadbc
         for i in glob.glob("datastore/*.db"):
             with lib_sql_handler.db_handler(i) as sqlitedb:
             
                 # Clean db
-                mariadb.delete_table(f"{i[:-3]}_config")
-                mariadb.delete_table(f"{i[:-3]}_infractions")
-                mariadb.delete_table(f"{i[:-3]}_starboard")
-                mariadb.delete_table(f"{i[:-3]}_mutes")
+                mariadbc.delete_table(f"{i[:-3]}_config")
+                mariadbc.delete_table(f"{i[:-3]}_infractions")
+                mariadbc.delete_table(f"{i[:-3]}_starboard")
+                mariadbc.delete_table(f"{i[:-3]}_mutes")
                 
                 # Make new tables
-                mariadb.make_new_table(f"{i[:-3]}_config",[["property", tuple, 1], ["value", str]])
+                mariadbc.make_new_table(f"{i[:-3]}_config",[["property", tuple, 1], ["value", str]])
                 fuckin_hell.make_new_table(f"{i[:-3]}_infractions", [
                 ["infractionID", tuple, 1],
                 ["userID", str],
@@ -74,8 +74,8 @@ def migrate():
                 ["reason", str],
                 ["timestamp", int(64)]
                 ])
-                mariadb.make_new_table(f"{i[:-3]}_starboard", [["messageID", tuple, 1]])
-                mariadb.make_new_table(f"{i[:-3]}_mutes", [["infractionID", tuple, 1],["userID", str],["endMute",int(64)]])
+                mariadbc.make_new_table(f"{i[:-3]}_starboard", [["messageID", tuple, 1]])
+                mariadbc.make_new_table(f"{i[:-3]}_mutes", [["infractionID", tuple, 1],["userID", str],["endMute",int(64)]])
             
                 # Move data
                 config = sqlitedb.grab_config()
@@ -83,13 +83,13 @@ def migrate():
                 
                 used = []
                 for configuration in config:
-                    mariadb.add_to_table(f"{i[:-3]}_config", [["property",configuration[0]],["value",configuration[1]]])
+                    mariadbc.add_to_table(f"{i[:-3]}_config", [["property",configuration[0]],["value",configuration[1]]])
                 for g in infractions:
                     new_id = generate_infractionid()
                     while (new_id in used):
                         new_id = generate_infractionid()
                     used.append(new_id)
-                    mariadb.add_to_table(f"{i[:-3]}_infractions", [
+                    mariadbc.add_to_table(f"{i[:-3]}_infractions", [
                     ["infractionID", new_id],
                     ["userID", g[1]],
                     ["moderatorID", g[2]],
