@@ -101,8 +101,10 @@ def migrate():
 
 
 
-a = input("INITDB or MOVEDATA")
+a = input("INITDB or MOVEDATA: ")
 if a.lower() == 'initdb':
     initialize_login()
 elif a.lower() == "movedata":
     migrate()
+else:
+    print("invalid option, exiting")
