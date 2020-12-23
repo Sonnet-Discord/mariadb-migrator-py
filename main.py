@@ -54,7 +54,7 @@ def initialize_login():
 
 
 def migrate():
-    with lib_mdb_handler.db_handler() as mariadbc
+    with lib_mdb_handler.db_handler() as mariadbc:
         for i in glob.glob("datastore/*.db"):
             with lib_sql_handler.db_handler(i) as sqlitedb:
             
