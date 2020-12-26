@@ -66,7 +66,7 @@ def migrate():
                 
                 # Make new tables
                 mariadbc.make_new_table(f"{i[:-3]}_config",[["property", tuple, 1], ["value", str]])
-                fuckin_hell.make_new_table(f"{i[:-3]}_infractions", [
+                mariadbc.make_new_table(f"{i[:-3]}_infractions", [
                 ["infractionID", tuple, 1],
                 ["userID", str],
                 ["moderatorID", str],
