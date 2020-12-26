@@ -8,6 +8,8 @@ def migrate(dbloc):
         for i in glob.glob("datastore/*.db"):
             with lib_sql_handler.db_handler(i) as sqlitedb:
 
+                i = i.split("/")[1]
+
                 # Make new tables
                 mariadbc.make_new_table(f"{i[:-3]}_config",[["property", tuple, 1], ["value", str]])
                 mariadbc.make_new_table(f"{i[:-3]}_infractions", [
