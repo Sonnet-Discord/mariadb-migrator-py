@@ -57,7 +57,9 @@ def migrate():
     with lib_mdb_handler.db_handler() as mariadbc:
         for i in glob.glob("datastore/*.db"):
             with lib_sql_handler.db_handler(i) as sqlitedb:
-            
+
+                i = i.split("/")[1]
+
                 # Clean db
                 mariadbc.delete_table(f"{i[:-3]}_config")
                 mariadbc.delete_table(f"{i[:-3]}_infractions")
