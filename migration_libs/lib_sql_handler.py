@@ -17,10 +17,10 @@ class db_handler:  # Im sorry I OOP'd it :c -ultrabear
     def make_new_table(self, tablename, data):
         
         # Load hashmap of python datatypes to SQLite3 datatypes
-        datamap = {int:"INTEGER", None:"NULL", float:"REAL", str:"TEXT", bytes:"TEXT"}
+        datamap = {int:"INTEGER", None:"NULL", float:"REAL", str:"TEXT", bytes:"TEXT", int(64):"BIGINT", tuple:"VARCHAR(255)"}
         
         # Add table addition
-        db_inputStr = f'CREATE TABLE IF NOT EXISTS {tablename} ('
+        db_inputStr = f"CREATE TABLE IF NOT EXISTS '{tablename}' ("
         
         # Parse through table items, item with 3 entries is primary key
         inlist = []
@@ -39,7 +39,7 @@ class db_handler:  # Im sorry I OOP'd it :c -ultrabear
     def add_to_table(self, table, data):
         
         # Add insert data and generate base tables
-        db_inputStr = f"REPLACE INTO {table} ("
+        db_inputStr = f"REPLACE INTO '{table}' ("
         db_inputList = []
         db_inputStr += ", ".join([i[0] for i in data])+ ")\n"
         

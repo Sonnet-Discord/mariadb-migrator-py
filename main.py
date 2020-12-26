@@ -1,69 +1,13 @@
 import migration_libs.lib_sql_handler as lib_sql_handler
-import migration_libs.lib_mdb_handler as lib_mdb_handler
 from migration_libs.lib_loaders import generate_infractionid
 
-import glob, getpass, mariadb, random, string, json
+import glob, random, string, json
 
-def initialize_login():
-    print('Rhea to Sonnet Migrator\nMake sure you have a MariaDB server ready!')
-    
-    # Get root login
-    host = input('MariaDB IP Address (127.0.0.1): ') or "127.0.0.1"
-    port = input('MariaDB Service Port (3306): ') or "3306"
-    db_name = input('MariaDB Database Name (sonnet): ') or "sonnet"
-    username = input('MariaDB Username (root): ') or "root"
-    password = getpass.getpass('MariaDB Password: ')
-
-    newpass = "".join([random.choice(string.ascii_letters) for i in range(random.randint(30,35))])
-
-    # Generate sonnet user
-    tmp = {
-        "server": host,
-        "port": port,
-        "db_name": db_name,
-        "login": "sonnet_user",
-        "password": newpass
-    }
-    
-    root = {
-        "server": host,
-        "port": port,
-        "db_name": db_name,
-        "login": username,
-        "password": password
-    }
-    
-    with open(".login-info.txt","w") as login_file:
-        login_file.write(json.dumps(tmp))
-    
-    
-    with lib_mdb_handler.db_handler_minimal(root) as database:
-        
-        database.cur.execute(f"CREATE DATABASE IF NOT EXISTS {db_name}")
-        database.cur.execute(f"USE {db_name};")
-        print('Created database OK.')
-        
-        database.cur.execute(f"CREATE USER IF NOT EXISTS 'sonnet_user'@'127.0.0.1' IDENTIFIED BY '{newpass}'")
-        print('User created OK.')
-        
-        database.cur.execute(f"GRANT ALL PRIVILEGES ON {db_name}.* TO 'sonnet_user'@'127.0.0.1' WITH GRANT OPTION")
-        print("User granted database permission OK.")
-        database.cur.execute("FLUSH PRIVILEGES")
-    print("COMPLETED")
-
-
-
-def migrate():
-    with lib_mdb_handler.db_handler() as mariadbc:
+def migrate(dbloc):
+    with lib_sql_handler.db_handler(dbloc) as mariadbc:
         for i in glob.glob("datastore/*.db"):
             with lib_sql_handler.db_handler(i) as sqlitedb:
-            
-                # Clean db
-                mariadbc.delete_table(f"{i[:-3]}_config")
-                mariadbc.delete_table(f"{i[:-3]}_infractions")
-                mariadbc.delete_table(f"{i[:-3]}_starboard")
-                mariadbc.delete_table(f"{i[:-3]}_mutes")
-                
+
                 # Make new tables
                 mariadbc.make_new_table(f"{i[:-3]}_config",[["property", tuple, 1], ["value", str]])
                 fuckin_hell.make_new_table(f"{i[:-3]}_infractions", [
@@ -97,14 +41,9 @@ def migrate():
                     ["reason", g[4]],
                     ["timestamp", g[5]]])
     
-    print("COMPLETED\n now copy the .login-info.txt file to your sonnet instance")
+    print("COMPLETED")
 
 
 
-a = input("INITDB or MOVEDATA: ")
-if a.lower() == 'initdb':
-    initialize_login()
-elif a.lower() == "movedata":
-    migrate()
-else:
-    print("invalid option, exiting")
+a = input("sqlite3 location: ")
+migrate(a)
