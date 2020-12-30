@@ -98,7 +98,6 @@ def migrate(sqlite3_loc):
     print("COMPLETED\n now copy the .login-info.txt file to your sonnet instance")
 
 
-raise Exception("FUCK YOU")
 a = input("INITDB or MOVEDATA: ")
 if a.lower() == 'initdb':
     initialize_login()
