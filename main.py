@@ -5,7 +5,7 @@ from migration_libs.lib_loaders import generate_infractionid
 import glob, getpass, mariadb, random, string, json
 
 def initialize_login():
-    print('Rhea to Sonnet Migrator\nMake sure you have a MariaDB server ready!')
+    print('Make sure you have a MariaDB server ready!')
     
     # Get root login
     host = input('MariaDB IP Address (127.0.0.1): ') or "127.0.0.1"
@@ -53,22 +53,17 @@ def initialize_login():
 
 
 
-def migrate():
+def migrate(sqlite3_loc):
     with lib_mdb_handler.db_handler() as mariadbc:
-        for i in glob.glob("datastore/*.db"):
-            with lib_sql_handler.db_handler(i) as sqlitedb:
+        with lib_sql_handler.db_handler(sqlite3_loc) as sqlitedb:
 
-                i = i.split("/")[1]
+            for i in sqlitedb.list_tables("%_config"):
+                mariadbc.make_new_table(i, [["property", tuple, 1], ["value", str]])
+                for row in sqlitedb.fetch_table(i):
+                    mariadbc.add_to_table(i, [["property", row[0]], ["value", row[1]]])
 
-                # Clean db
-                mariadbc.delete_table(f"{i[:-3]}_config")
-                mariadbc.delete_table(f"{i[:-3]}_infractions")
-                mariadbc.delete_table(f"{i[:-3]}_starboard")
-                mariadbc.delete_table(f"{i[:-3]}_mutes")
-                
-                # Make new tables
-                mariadbc.make_new_table(f"{i[:-3]}_config",[["property", tuple, 1], ["value", str]])
-                mariadbc.make_new_table(f"{i[:-3]}_infractions", [
+            for i in sqlitedb.list_tables("%_infractions"):
+                mariadbc.make_new_table(i, [
                 ["infractionID", tuple, 1],
                 ["userID", str],
                 ["moderatorID", str],
@@ -76,37 +71,39 @@ def migrate():
                 ["reason", str],
                 ["timestamp", int(64)]
                 ])
-                mariadbc.make_new_table(f"{i[:-3]}_starboard", [["messageID", tuple, 1]])
-                mariadbc.make_new_table(f"{i[:-3]}_mutes", [["infractionID", tuple, 1],["userID", str],["endMute",int(64)]])
-            
-                # Move data
-                config = sqlitedb.grab_config()
-                infractions = sqlitedb.grab_infractions()
-                
-                used = []
-                for configuration in config:
-                    mariadbc.add_to_table(f"{i[:-3]}_config", [["property",configuration[0]],["value",configuration[1]]])
-                for g in infractions:
-                    new_id = generate_infractionid()
-                    while (new_id in used):
-                        new_id = generate_infractionid()
-                    used.append(new_id)
-                    mariadbc.add_to_table(f"{i[:-3]}_infractions", [
-                    ["infractionID", new_id],
-                    ["userID", g[1]],
-                    ["moderatorID", g[2]],
-                    ["type", g[3]],
-                    ["reason", g[4]],
-                    ["timestamp", g[5]]])
-    
+                for row in sqlitedb.fetch_table(i):
+                    mariadbc.add_to_table(i, [
+                    ["infractionID", row[0]],
+                    ["userID", row[1]],
+                    ["moderatorID", row[2]],
+                    ["type", row[3]],
+                    ["reason", row[4]],
+                    ["timestamp", row[5]]
+                    ])
+
+            for i in sqlitedb.list_tables("%_starboard"):
+                mariadbc.make_new_table(i, [["messageID", tuple, 1]])
+                for row in sqlitedb.fetch_table(i):
+                    mariadbc.add_to_table(i, [["messageID", row[0]]])
+
+            for i in sqlitedb.list_tables("%_mutes"):
+                mariadbc.make_new_table(i, [["infractionID", tuple, 1],["userID", str],["endMute",int(64)]])
+                for row in sqlitedb.fetch_table(i):
+                    mariadbc.add_to_table(i, [
+                        ["infractionID", row[0]],
+                        ["userID", row[1]],
+                        ["endMute", row[2]]
+                        ])
+
     print("COMPLETED\n now copy the .login-info.txt file to your sonnet instance")
 
 
-
+raise Exception("FUCK YOU")
 a = input("INITDB or MOVEDATA: ")
 if a.lower() == 'initdb':
     initialize_login()
 elif a.lower() == "movedata":
-    migrate()
+    b = input("sqlite3 location: ")
+    migrate(b)
 else:
     print("invalid option, exiting")
