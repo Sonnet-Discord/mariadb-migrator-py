@@ -57,13 +57,13 @@ def migrate(sqlite3_loc):
     with lib_mdb_handler.db_handler() as mariadbc:
         with lib_sql_handler.db_handler(sqlite3_loc) as sqlitedb:
 
-            for i in sqlitedb.list_tables("%_config")[0]:
-                mariadbc.make_new_table(i, [["property", tuple, 1], ["value", str]])
-                for row in sqlitedb.fetch_table(i):
-                    mariadbc.add_to_table(i, [["property", row[0]], ["value", row[1]]])
+            for i in sqlitedb.list_tables("%_config"):
+                mariadbc.make_new_table(i[0], [["property", tuple, 1], ["value", str]])
+                for row in sqlitedb.fetch_table(i[0]):
+                    mariadbc.add_to_table(i[0], [["property", row[0]], ["value", row[1]]])
 
-            for i in sqlitedb.list_tables("%_infractions")[0]:
-                mariadbc.make_new_table(i, [
+            for i in sqlitedb.list_tables("%_infractions"):
+                mariadbc.make_new_table(i[0], [
                 ["infractionID", tuple, 1],
                 ["userID", str],
                 ["moderatorID", str],
@@ -71,8 +71,8 @@ def migrate(sqlite3_loc):
                 ["reason", str],
                 ["timestamp", int(64)]
                 ])
-                for row in sqlitedb.fetch_table(i):
-                    mariadbc.add_to_table(i, [
+                for row in sqlitedb.fetch_table(i[0]):
+                    mariadbc.add_to_table(i[0], [
                     ["infractionID", row[0]],
                     ["userID", row[1]],
                     ["moderatorID", row[2]],
@@ -81,15 +81,15 @@ def migrate(sqlite3_loc):
                     ["timestamp", row[5]]
                     ])
 
-            for i in sqlitedb.list_tables("%_starboard")[0]:
-                mariadbc.make_new_table(i, [["messageID", tuple, 1]])
-                for row in sqlitedb.fetch_table(i):
-                    mariadbc.add_to_table(i, [["messageID", row[0]]])
+            for i in sqlitedb.list_tables("%_starboard"):
+                mariadbc.make_new_table(i[0], [["messageID", tuple, 1]])
+                for row in sqlitedb.fetch_table(i[0]):
+                    mariadbc.add_to_table(i[0], [["messageID", row[0]]])
 
-            for i in sqlitedb.list_tables("%_mutes")[0]:
-                mariadbc.make_new_table(i, [["infractionID", tuple, 1],["userID", str],["endMute",int(64)]])
-                for row in sqlitedb.fetch_table(i):
-                    mariadbc.add_to_table(i, [
+            for i in sqlitedb.list_tables("%_mutes"):
+                mariadbc.make_new_table(i[0], [["infractionID", tuple, 1],["userID", str],["endMute",int(64)]])
+                for row in sqlitedb.fetch_table(i[0]):
+                    mariadbc.add_to_table(i[0], [
                         ["infractionID", row[0]],
                         ["userID", row[1]],
                         ["endMute", row[2]]
